@@ -5,6 +5,8 @@ import urllib.error
 import urllib.request
 from typing import Any
 
+USER_AGENT = "Itruim-Grader-Worker/0.1 (+https://github.com/lacrielll/itruim-grader-worker)"
+
 
 class ApiFailure(RuntimeError):
     pass
@@ -18,7 +20,11 @@ class GraderApi:
 
     def request(self, method: str, path: str, body: dict[str, Any] | None = None, lease: str | None = None) -> Any:
         data = json.dumps(body).encode() if body is not None else None
-        headers = {"Authorization": f"Bearer {self.token}", "Accept": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Accept": "application/json",
+            "User-Agent": USER_AGENT,
+        }
         if data is not None:
             headers["Content-Type"] = "application/json"
         if lease:
@@ -29,6 +35,8 @@ class GraderApi:
                 return json.loads(response.read())
         except urllib.error.HTTPError as error:
             payload = error.read().decode(errors="replace")
+            if error.code == 403 and ('"error_code":1010' in payload.replace(" ", "") or "browser_signature_banned" in payload):
+                raise ApiFailure(f"{method} {path}: Cloudflare заблокировал сигнатуру HTTP-клиента (Error 1010)") from error
             raise ApiFailure(f"{method} {path}: HTTP {error.code}: {payload[:1000]}") from error
 
     def readiness(self, ready: bool, environment: dict[str, Any]) -> Any:
