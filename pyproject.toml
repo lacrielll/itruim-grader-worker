@@ -1,0 +1,12 @@
+[project]
+name = "itruim-grader-worker"
+version = "0.1.0"
+description = "Local sandboxed grader worker for Itruim"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+grader-worker = "grader_worker.cli:main"
+
+[tool.unittest]
+start-directory = "tests"

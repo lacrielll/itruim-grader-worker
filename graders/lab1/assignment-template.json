@@ -1,0 +1,45 @@
+{
+  "specification": "Демонстрационная лабораторная: четыре задачи Python и две задачи NumPy. Реализуйте функции в python_basics.py и numpy_tasks.py. Файлы grader_contracts изменять нельзя.",
+  "starter_repository_url": null,
+  "starter_commit_sha": null,
+  "runtime_profile": "CPU",
+  "environment_version": "cpu-v1",
+  "grader_contract": {
+    "contract_directory": "grader_contracts",
+    "required_files": ["grader_contracts/__init__.py", "grader_contracts/python_basics.py", "grader_contracts/numpy_tasks.py"],
+    "functions": [
+      {"name":"count_vowels","input_type":"grader_contracts.python_basics.TextInput","return_type":"int","allow_additional_optional_parameters":true},
+      {"name":"has_unique_characters","input_type":"grader_contracts.python_basics.TextInput","return_type":"bool","allow_additional_optional_parameters":true},
+      {"name":"multiplicative_persistence","input_type":"grader_contracts.python_basics.PositiveIntegerInput","return_type":"int","allow_additional_optional_parameters":true},
+      {"name":"prime_factorization","input_type":"grader_contracts.python_basics.PositiveIntegerInput","return_type":"str","allow_additional_optional_parameters":true},
+      {"name":"sum_prod","input_type":"grader_contracts.numpy_tasks.MatrixVectorBatchInput","return_type":"numpy.ndarray","allow_additional_optional_parameters":true},
+      {"name":"binarize","input_type":"grader_contracts.numpy_tasks.BinarizeInput","return_type":"numpy.ndarray","allow_additional_optional_parameters":true}
+    ]
+  },
+  "dependency_policy": {"allow":["numpy"]},
+  "resource_policy": {"cpu_threads":1,"ram_mb":256,"wall_time_sec":120,"pids":32,"gpu":{"required":false,"count":0,"vram_mb":0}},
+  "rubric": "Шесть обязательных функций. Все deterministic checks должны пройти до LLM-review.",
+  "rubric_definition": {"version":"demo-lab1-v1","criteria":[
+    {"id":"correctness","title":"Корректность","description":"Все функции проходят функциональные и граничные тесты.","min_score":0,"max_score":70,"score_step":1,"required_evidence_types":["deterministic_test","contract_check"],"clarification_allowed":false,"student_visible":true},
+    {"id":"python_quality","title":"Python: качество решений","description":"Чистый код и корректные алгоритмы.","min_score":0,"max_score":15,"score_step":1,"required_evidence_types":["code","grader_observation","student_answer"],"clarification_allowed":true,"student_visible":true},
+    {"id":"numpy_quality","title":"NumPy: качество решений","description":"Чистые векторизованные решения без требований знать внутреннее устройство NumPy.","min_score":0,"max_score":15,"score_step":1,"required_evidence_types":["code","grader_observation","student_answer"],"clarification_allowed":true,"student_visible":true}
+  ]},
+  "grader_repository":"LOCAL_BUNDLED_GRADER",
+  "grader_commit_sha":"90e09b948d841a020d6ce701475d2134c174a3cb",
+  "grader_path":"lab1",
+  "grader_entrypoint":"grader.py",
+  "private_grader_config":{"suite":"demo-lab1-v1"},
+  "review_focus":"Оценивай чистоту кода, алгоритмическую корректность и понимание реально использованных конструкций. Не спрашивай про внутреннее устройство NumPy.",
+  "grading_pipeline":{"version":"v1","stages":[{"id":"contracts","kind":"contracts","failure_policy":"stop_on_critical"},{"id":"tests","kind":"tests","failure_policy":"stop_on_critical"},{"id":"llm","kind":"llm","failure_policy":"teacher_review"}]},
+  "llm_pipeline":{"version":"v1","enabled":true,"preset":"one_clarification","max_rounds":1,"max_questions_per_round":4,"answer_deadline_seconds":86400,"final_decision":"teacher"},
+  "achievement_definitions":[
+    {"id":"common/first-try","title":"Не в этот раз, тестировщик!","description":"0 failed. Тестировщик требует реванш.","unlock_hint":"Первый сабмит проходит все обязательные тесты.","emoji":"🛡️","image_key":null,"theme":"success","accent_color":"#22C55E","visibility":"public","repeatability":"once_per_course","award_policy":"automatic","allowed_sources":["grader"],"trigger":{"event":"first_submission_passed"}},
+    {"id":"assignment/lab-1/unexpected-set","title":"Никто не ожидает set!","description":"Главное оружие — неожиданность. И хэш-таблица.","unlock_hint":"Решить уникальность символов через set или frozenset.","emoji":"♠","image_key":null,"theme":"info","accent_color":"#38BDF8","visibility":"public","repeatability":"once_per_assignment","award_policy":"automatic","allowed_sources":["grader"],"trigger":{"kind":"ast","function":"has_unique_characters"}},
+    {"id":"assignment/lab-1/work-smarter","title":"Work smarter, not harder","description":"Дальше корня ходят только самые упорные.","unlock_hint":"Не проверять делители дальше квадратного корня.","emoji":"√","image_key":null,"theme":"info","accent_color":"#7DD3FC","visibility":"public","repeatability":"once_per_assignment","award_policy":"automatic","allowed_sources":["grader"],"trigger":{"kind":"ast","function":"prime_factorization"}},
+    {"id":"assignment/lab-1/understand-recursion","title":"Чтобы понять рекурсию…","description":"…сначала получите это достижение ещё раз.","unlock_hint":"Решить multiplicative_persistence прямой рекурсией.","emoji":"↻","image_key":null,"theme":"info","accent_color":"#2563EB","visibility":"public","repeatability":"once_per_assignment","award_policy":"automatic","allowed_sources":["grader"],"trigger":{"kind":"ast","function":"multiplicative_persistence"}},
+    {"id":"assignment/lab-1/einstein","title":"Эйнштейн вошёл в чат","description":"Сумму писать не будем.","unlock_hint":"Использовать np.einsum в sum_prod.","emoji":"Σ","image_key":null,"theme":"info","accent_color":"#38BDF8","visibility":"public","repeatability":"once_per_assignment","award_policy":"automatic","allowed_sources":["grader"],"trigger":{"kind":"ast","function":"sum_prod"}},
+    {"id":"common/developer-was-here","title":"Здесь был разработчик","description":"Через полгода вы скажете себе спасибо.","unlock_hint":"Объяснить комментарием причину нетривиального решения или edge case.","emoji":"✍","image_key":null,"theme":"success","accent_color":"#22C55E","visibility":"public","repeatability":"once_per_course","award_policy":"teacher_confirmation","allowed_sources":["llm"],"trigger":{"kind":"semantic_comment"}},
+    {"id":"assignment/lab-1/all-functions","title":"Полный комплект","description":"Ни одной потерянной функции.","unlock_hint":"Пройти все обязательные deterministic checks.","emoji":"✓","image_key":null,"theme":"success","accent_color":"#22C55E","visibility":"public","repeatability":"once_per_assignment","award_policy":"automatic","allowed_sources":["pipeline"],"trigger":{"event":"all_required_functions_passed"}},
+    {"id":"assignment/lab-1/completed","title":"Лабораторная завершена","description":"Работа принята. Можно выдохнуть.","unlock_hint":"Получить окончательное принятие преподавателем.","emoji":"◆","image_key":null,"theme":"success","accent_color":"#38BDF8","visibility":"public","repeatability":"once_per_assignment","award_policy":"automatic","allowed_sources":["platform"],"trigger":{"source":"platform","event":"submission.finalized"}}
+  ]
+}

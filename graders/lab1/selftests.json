@@ -1,0 +1,6 @@
+{
+  "cases": [
+    {"id": "reference-solution", "solution": "reference.py", "expected_gate": "passed"},
+    {"id": "missing-contract-symbols", "solution": "selftests/missing_symbols.py", "expected_gate": "failed", "expected_diagnostic": "CONTRACT_SYMBOL_MISSING"}
+  ]
+}
