@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "itruim-grader-worker"
 version = "0.1.0"
@@ -7,6 +11,17 @@ dependencies = []
 
 [project.scripts]
 grader-worker = "grader_worker.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+py-modules = ["sandbox_entry", "student_executor"]
+
+[tool.setuptools.packages.find]
+include = ["grader_worker*", "graders*"]
+exclude = ["tests*", "images*", "docs*", "examples*"]
+
+[tool.setuptools.package-data]
+"graders.lab1" = ["*.json", "selftests/*.py"]
 
 [tool.unittest]
 start-directory = "tests"
