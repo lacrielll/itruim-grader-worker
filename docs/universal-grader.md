@@ -134,3 +134,13 @@ fresh untrusted sandbox per stage
 AST-политика — ранняя диагностика, а не sandbox. Основная защита — gVisor, UID
 separation, filesystem permissions, отсутствие сети, лимиты и отсутствие
 секретов внутри student runtime.
+
+## Python-политика лабораторной
+
+Ограничение Python не является глобальным: для лабораторной оно лежит в
+`graders/<assignment>/python-policy.json`. В файле можно задать
+`allowed_import_roots`, `forbidden_calls`, `forbidden_attributes` и
+`forbid_dunder_attributes`. Если файла нет, импортный allowlist не применяется;
+при этом базовая защита от опасных вызовов (`open`, `eval`, `exec` и т. п.)
+остаётся включённой. Это позволяет одной лабораторной требовать NumPy, а другой
+— например, pandas или чистый Python, не меняя правила для всех остальных.
