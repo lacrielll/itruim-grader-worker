@@ -8,7 +8,7 @@ from grader_worker.policy import load_python_policy, scan_python_tree
 class PolicyTests(unittest.TestCase):
     def test_allows_lab_subset(self):
         with TemporaryDirectory() as directory:
-            Path(directory, "solution.py").write_text("import numpy as np\nfrom grader_contracts import Inputs\ndef f(x):\n return np.asarray(x)\n")
+            Path(directory, "solution.py").write_text("import matplotlib.pyplot as plt\nimport pytest\nimport numpy as np\nfrom grader_contracts import Inputs\ndef f(x):\n return np.asarray(x)\n")
             policy = load_python_policy(Path(__file__).parents[1] / "graders" / "lab1" / "python-policy.json")
             self.assertEqual(scan_python_tree(Path(directory), policy), [])
 

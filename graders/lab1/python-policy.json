@@ -1,3 +1,12 @@
 {
-  "allowed_import_roots": ["__future__", "collections", "dataclasses", "functools", "grader_contracts", "itertools", "math", "numpy", "statistics", "typing"]
+  "allowed_import_roots": [
+    "__future__", "collections", "dataclasses", "doctest", "functools",
+    "grader_contracts", "hypothesis", "itertools", "math", "matplotlib",
+    "numpy", "numpy_tasks", "pytest", "python_basics", "statistics",
+    "typing", "unittest"
+  ],
+  "forbidden_calls": ["eval", "exec", "compile", "__import__", "open", "input", "breakpoint"],
+  "forbidden_attributes": ["system", "popen", "spawn", "fork", "connect", "request", "urlopen"],
+  "forbid_dunder_attributes": true,
+  "allow_relative_imports": true
 }

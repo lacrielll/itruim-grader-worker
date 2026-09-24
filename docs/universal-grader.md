@@ -139,8 +139,9 @@ separation, filesystem permissions, отсутствие сети, лимиты 
 
 Ограничение Python не является глобальным: для лабораторной оно лежит в
 `graders/<assignment>/python-policy.json`. В файле можно задать
-`allowed_import_roots`, `forbidden_calls`, `forbidden_attributes` и
-`forbid_dunder_attributes`. Если файла нет, импортный allowlist не применяется;
-при этом базовая защита от опасных вызовов (`open`, `eval`, `exec` и т. п.)
-остаётся включённой. Это позволяет одной лабораторной требовать NumPy, а другой
+`allowed_import_roots`, `forbidden_calls`, `forbidden_attributes`,
+`forbid_dunder_attributes` и `allow_relative_imports`. Если файла нет,
+AST-проверка ничего не запрещает: нет ни неявного import allowlist, ни скрытого
+blacklist. Каждый запрет должен быть записан в политике самой лабораторной.
+Это позволяет одной лабораторной требовать NumPy, а другой
 — например, pandas или чистый Python, не меняя правила для всех остальных.
