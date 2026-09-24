@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .api import ApiFailure, GraderApi
 from .models import Diagnostic, GradeResult
-from .repository import RepositoryFailure, checkout_exact, temporary_snapshot, validate_snapshot
+from .repository import RepositoryFailure, checkout_exact, is_transient_repository_failure, temporary_snapshot, validate_snapshot
 from .local_uploads import copy_local_upload
 from .sandbox import SandboxInfrastructureFailure, SandboxPolicy, docker_ready, run_sandbox
 from .llm_review import run_followup_review, run_initial_review
@@ -147,6 +147,9 @@ class Worker:
             self.api.progress(job_id, lease, "tests", "Результат проверки сохраняется")
             self.api.result(job_id, lease, result)
         except RepositoryFailure as error:
+            if is_transient_repository_failure(error):
+                self.api.infra_failure(job_id, lease, "REPOSITORY_NETWORK_UNAVAILABLE")
+                return
             result = GradeResult("repository_failed", "failed", str(error), [Diagnostic(error.code, "Не удалось проверить репозиторий", str(error), "repository")])
             self.api.result(job_id, lease, result.api_dict())
         except (ProviderFailure, CapacityUnavailable):

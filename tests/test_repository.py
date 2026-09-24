@@ -4,10 +4,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from grader_worker.repository import RepositoryFailure, SnapshotLimits, validate_snapshot
+from grader_worker.repository import RepositoryFailure, SnapshotLimits, is_transient_repository_failure, validate_snapshot
 
 
 class SnapshotValidationTests(unittest.TestCase):
+    def test_distinguishes_worker_infrastructure_from_invalid_student_snapshot(self):
+        self.assertTrue(is_transient_repository_failure(RepositoryFailure("REPOSITORY_UNAVAILABLE", "network")))
+        self.assertFalse(is_transient_repository_failure(RepositoryFailure("FORBIDDEN_FILE_TYPE", "checkpoint")))
+
     def test_accepts_small_source_snapshot(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -33,4 +37,3 @@ class SnapshotValidationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -23,6 +23,12 @@ class SnapshotLimits:
 
 
 FORBIDDEN_SUFFIXES = {".pt", ".pth", ".ckpt", ".onnx", ".bin", ".zip", ".tar", ".gz", ".7z"}
+TRANSIENT_REPOSITORY_FAILURE_CODES = frozenset({"REPOSITORY_UNAVAILABLE", "REPOSITORY_TIMEOUT", "WORK_ROOT_UNAVAILABLE"})
+
+
+def is_transient_repository_failure(error: RepositoryFailure) -> bool:
+    """A checkout failure may be caused by the worker's network, not student code."""
+    return error.code in TRANSIENT_REPOSITORY_FAILURE_CODES
 
 
 def validate_snapshot(root: Path, limits: SnapshotLimits = SnapshotLimits()) -> dict[str, int]:
