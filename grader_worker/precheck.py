@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .policy import scan_python_tree
+from .policy import load_python_policy, scan_python_tree
 from .repository import RepositoryFailure, validate_snapshot
 
 
@@ -20,7 +20,12 @@ def precheck(assignment: str, submission: Path, root: Path) -> dict[str, Any]:
     except RepositoryFailure as error:
         errors.append({"code": error.code, "message": str(error)})
         stats = {"files": 0, "bytes": 0}
-    for finding in scan_python_tree(submission):
+    policy_path = root / "graders" / assignment / "python-policy.json"
+    try:
+        policy = load_python_policy(policy_path)
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return {"ok": False, "assignment": assignment, "stats": {"files": 0, "bytes": 0}, "errors": [{"code": "POLICY_INVALID", "message": str(error)}], "warnings": []}
+    for finding in scan_python_tree(submission, policy):
         errors.append({"code": finding.code, "message": f"{finding.source_path}:{finding.source_line}", "path": finding.source_path})
     contract = template.get("grader_contract", {})
     for required in contract.get("required_files", []):
@@ -36,4 +41,4 @@ def precheck(assignment: str, submission: Path, root: Path) -> dict[str, Any]:
     for function in contract.get("functions", []):
         if function.get("name") not in symbols:
             errors.append({"code": "CONTRACT_SYMBOL_MISSING", "message": f"Не найдена функция {function.get('name')}"})
-    return {"ok": not errors, "assignment": assignment, "stats": stats, "errors": errors, "warnings": [], "note": "Precheck проверяет структуру и публичную policy, но не запускает скрытые тесты."}
+    return {"ok": not errors, "assignment": assignment, "stats": stats, "errors": errors, "warnings": [], "note": "Precheck проверяет структуру и policy этой лабораторной, но не запускает скрытые тесты."}

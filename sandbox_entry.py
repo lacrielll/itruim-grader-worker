@@ -7,7 +7,7 @@ import traceback
 import importlib
 import re
 from pathlib import Path
-from grader_worker.policy import findings_as_events, scan_python_tree
+from grader_worker.policy import findings_as_events, load_python_policy, scan_python_tree
 
 
 def main() -> None:
@@ -17,7 +17,8 @@ def main() -> None:
     args = parser.parse_args()
     output = Path(args.output)
     try:
-        findings = scan_python_tree(Path("/submission"))
+        policy = load_python_policy(Path("/private/graders") / args.assignment / "python-policy.json")
+        findings = scan_python_tree(Path("/submission"), policy)
         if findings:
             result = {
                 "schema_version": 1, "outcome": "static_policy_failed", "score": {"earned": 0, "maximum": 100},

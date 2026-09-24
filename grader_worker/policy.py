@@ -1,12 +1,33 @@
 from __future__ import annotations
 
 import ast
+import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
-ALLOWED_IMPORT_ROOTS = {"__future__", "collections", "dataclasses", "functools", "grader_contracts", "itertools", "math", "numpy", "statistics", "typing"}
-FORBIDDEN_CALLS = {"eval", "exec", "compile", "__import__", "open", "input", "breakpoint"}
-FORBIDDEN_ATTRIBUTES = {"system", "popen", "spawn", "fork", "connect", "request", "urlopen"}
+BASE_FORBIDDEN_CALLS = frozenset({"eval", "exec", "compile", "__import__", "open", "input", "breakpoint"})
+BASE_FORBIDDEN_ATTRIBUTES = frozenset({"system", "popen", "spawn", "fork", "connect", "request", "urlopen"})
+
+@dataclass(frozen=True)
+class PythonPolicy:
+    allowed_import_roots: frozenset[str] | None = None
+    forbidden_calls: frozenset[str] = BASE_FORBIDDEN_CALLS
+    forbidden_attributes: frozenset[str] = BASE_FORBIDDEN_ATTRIBUTES
+    forbid_dunder_attributes: bool = True
+
+def load_python_policy(path: Path) -> PythonPolicy:
+    if not path.is_file(): return PythonPolicy()
+    raw: Any = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict): raise ValueError("python-policy.json must be an object")
+    imports = raw.get("allowed_import_roots")
+    if imports is not None and (not isinstance(imports, list) or not all(isinstance(item, str) and item for item in imports)):
+        raise ValueError("allowed_import_roots must be an array of non-empty strings")
+    def strings(key: str, default: frozenset[str]) -> frozenset[str]:
+        value = raw.get(key, list(default))
+        if not isinstance(value, list) or not all(isinstance(item, str) and item for item in value): raise ValueError(f"{key} must be an array of non-empty strings")
+        return frozenset(value)
+    return PythonPolicy(frozenset(imports) if imports is not None else None, strings("forbidden_calls", BASE_FORBIDDEN_CALLS), strings("forbidden_attributes", BASE_FORBIDDEN_ATTRIBUTES), bool(raw.get("forbid_dunder_attributes", True)))
 
 @dataclass(frozen=True)
 class PolicyFinding:
@@ -20,7 +41,8 @@ class PolicyFinding:
 def _finding(code: str, path: Path, node: ast.AST, **details: str) -> PolicyFinding:
     return PolicyFinding("critical", code, "static_policy", path.as_posix(), getattr(node, "lineno", 1), details)
 
-def scan_python_tree(root: Path) -> list[PolicyFinding]:
+def scan_python_tree(root: Path, policy: PythonPolicy | None = None) -> list[PolicyFinding]:
+    policy = policy or PythonPolicy()
     findings: list[PolicyFinding] = []
     for path in sorted(root.rglob("*.py")):
         relative = path.relative_to(root)
@@ -32,18 +54,18 @@ def scan_python_tree(root: Path) -> list[PolicyFinding]:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    if alias.name.split(".", 1)[0] not in ALLOWED_IMPORT_ROOTS:
+                    if policy.allowed_import_roots is not None and alias.name.split(".", 1)[0] not in policy.allowed_import_roots:
                         findings.append(_finding("IMPORT_NOT_ALLOWED", relative, node, import_name=alias.name))
             elif isinstance(node, ast.ImportFrom):
                 root_name = (node.module or "").split(".", 1)[0]
-                if node.level or root_name not in ALLOWED_IMPORT_ROOTS:
+                if node.level or (policy.allowed_import_roots is not None and root_name not in policy.allowed_import_roots):
                     findings.append(_finding("IMPORT_NOT_ALLOWED", relative, node, import_name=("." * node.level) + (node.module or "")))
             elif isinstance(node, ast.Call):
-                if isinstance(node.func, ast.Name) and node.func.id in FORBIDDEN_CALLS:
+                if isinstance(node.func, ast.Name) and node.func.id in policy.forbidden_calls:
                     findings.append(_finding("CALL_NOT_ALLOWED", relative, node, call=node.func.id))
-                elif isinstance(node.func, ast.Attribute) and node.func.attr in FORBIDDEN_ATTRIBUTES:
+                elif isinstance(node.func, ast.Attribute) and node.func.attr in policy.forbidden_attributes:
                     findings.append(_finding("CALL_NOT_ALLOWED", relative, node, call=node.func.attr))
-            elif isinstance(node, ast.Attribute) and node.attr.startswith("__"):
+            elif policy.forbid_dunder_attributes and isinstance(node, ast.Attribute) and node.attr.startswith("__"):
                 findings.append(_finding("DUNDER_ACCESS_NOT_ALLOWED", relative, node, attribute=node.attr))
     return findings
 
